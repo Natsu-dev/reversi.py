@@ -1,0 +1,2 @@
+# reversi.py
+Simple reversi.
