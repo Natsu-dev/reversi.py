@@ -86,6 +86,9 @@ def find(fieldInt, mine, enemy):
 
 
 def turnOver(fieldInt, p, dir, mine, enemy):
+    if p < 0 | p > 63:
+        return (False, fieldInt)
+
     if fieldInt[p] == enemy:
 
         tuple = turnOver(fieldInt, p + dir, dir, mine, enemy)
