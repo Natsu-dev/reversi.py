@@ -1,6 +1,7 @@
 import random
 import numpy as np
 import time
+import copy
 
 
 def parseField(fieldInt):
@@ -149,6 +150,27 @@ def randomSet(settable):
     return random.choice(settable)
 
 
+# return -> hand
+def maximumGain(fieldInt, settable, mine, enemy):
+    maximum = 0
+    toc = 0
+    i = 0
+    
+    for preHand in settable:
+
+        fieldIntTemp = copy.deepcopy(fieldInt)
+
+        preSet = setStone(fieldIntTemp, preHand, mine, enemy)
+        if toc < preSet[1]:
+            toc = preSet[1]
+            maximum = i
+        i += 1
+
+    print(fieldInt)
+
+    return settable[maximum]
+
+
 def main():
     fieldInt = setup()
     fieldStr = parseField(fieldInt)
@@ -158,6 +180,9 @@ def main():
     mine = 1
     enemy = 2
     turn = 0
+
+    autoPlay = True
+    enemyHandPattern = 1
 
     while turn < 60:
         print('Turn ' + str(turn + 1) + '!')
@@ -169,13 +194,20 @@ def main():
             skipped = False
             
             if playerTurn:
-                handStr = input('Player ' + str(mine) +
+                if autoPlay == True:
+                    time.sleep(0.5)
+                    hand = randomSet(settable)
+                else:
+                    handStr = input('Player ' + str(mine) +
                             ', Enter the position in format "x y": ')
-                hand = handStr.split()
-                hand = [int(n) for n in hand]
+                    hand = handStr.split()
+                    hand = [int(n) for n in hand]
             else:
-                time.sleep(1)
-                hand = randomSet(settable)
+                time.sleep(0.5)
+                if enemyHandPattern == 0:
+                    hand = randomSet(settable)
+                elif enemyHandPattern == 1:
+                    hand = maximumGain(fieldInt, settable, mine, enemy)
 
             print(hand)
 
@@ -210,6 +242,7 @@ def main():
         turn += 1
 
     print('Game Set!')
+
 
 
 if __name__ == "__main__":
