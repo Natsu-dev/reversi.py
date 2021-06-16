@@ -208,7 +208,7 @@ def giveMinHands(fieldInt, settable, mine, enemy):
         ehLen = len(eh)
 
         if ehLen <= enemyHands:
-            ehLen = enemyHands
+            enemyHands = ehLen
             minimum = i
         i += 1
 
