@@ -38,6 +38,28 @@ def setup():
     return fieldInt
 
 
+def judge(fieldInt):
+
+    b, w = 0, 0
+    winner = 0
+    
+    for m in range(8):
+        for n in fieldInt[m, ]:
+            if n == 1:
+                b += 1
+            elif n == 2:
+                w += 1
+    
+    if b > w:
+        winner = 1
+    elif b < w:
+        winner = 2
+    else:
+        winner = 0
+
+    return (winner, b, w) 
+
+
 # int fieldInt, list (int position)
 def setStone(fieldInt, position, mine, enemy):
     
@@ -195,7 +217,7 @@ def main():
             
             if playerTurn:
                 if autoPlay == True:
-                    time.sleep(0.5)
+                    time.sleep(0.2)
                     hand = randomSet(settable)
                 else:
                     handStr = input('Player ' + str(mine) +
@@ -203,7 +225,7 @@ def main():
                     hand = handStr.split()
                     hand = [int(n) for n in hand]
             else:
-                time.sleep(0.5)
+                time.sleep(0.2)
                 if enemyHandPattern == 0:
                     hand = randomSet(settable)
                 elif enemyHandPattern == 1:
@@ -241,8 +263,15 @@ def main():
         print(fieldStr)
         turn += 1
 
-    print('Game Set!')
 
+    print('Game Set!')
+    judgeTuple = judge(fieldInt)
+    if judgeTuple[0] == 1:
+        print('Winner is black! ({} vs {})'.format(judgeTuple[1], judgeTuple[2]))
+    elif judgeTuple[0] == 2:
+        print('Winner is white! ({} vs {})'.format(judgeTuple[1], judgeTuple[2]))
+    else:
+        print('Draw! ({} vs {})'.format(judgeTuple[1], judgeTuple[2]))
 
 
 if __name__ == "__main__":
