@@ -172,7 +172,7 @@ def randomSet(settable):
 
 
 # return -> hand
-def gainMaximumStones(fieldInt, settable, mine, enemy):
+def gainMaxStones(fieldInt, settable, mine, enemy):
     maximum = 0
     toc = 0
     i = 0
@@ -188,6 +188,25 @@ def gainMaximumStones(fieldInt, settable, mine, enemy):
         i += 1
 
     return settable[maximum]
+
+
+# return -> hand
+def gainMinStones(fieldInt, settable, mine, enemy):
+    minimum = 0
+    toc = 64
+    i = 0
+    
+    for preHand in settable:
+
+        fieldIntTemp = copy.deepcopy(fieldInt)
+
+        preSet = setStone(fieldIntTemp, preHand, mine, enemy)
+        if preSet[1] <= toc:
+            toc = preSet[1]
+            minimum = i
+        i += 1
+
+    return settable[minimum]
 
 
 # return -> hand
@@ -252,9 +271,11 @@ def main():
                 if enemyHandPattern == 0:
                     hand = randomSet(settable)
                 elif enemyHandPattern == 1:
-                    hand = gainMaximumStones(fieldInt, settable, mine, enemy)
+                    hand = gainMaxStones(fieldInt, settable, mine, enemy)
                 elif enemyHandPattern == 2:
                     hand = giveMinHands(fieldInt, settable, mine, enemy)
+                elif enemyHandPattern == 3:
+                    hand = gainMinStones(fieldInt, settable, mine, enemy)
 
             print(hand)
 
