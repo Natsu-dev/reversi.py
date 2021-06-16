@@ -45,6 +45,7 @@ def setStone(fieldInt, position, mine, enemy):
 
     dirList = [(-1, -1), (-1, 0), (-1, 1), (0, -1),
                (0, 1), (1, -1), (1, 0), (1, 1)]
+    toCount = 0
     for dir in dirList:
         (dx, dy) = (dir[0], dir[1])
 
@@ -55,8 +56,9 @@ def setStone(fieldInt, position, mine, enemy):
         turnPosition = [px + dx, py + dy]
         tuple = turnOver(fieldInt, turnPosition, dir, mine, enemy)
         fieldInt = tuple[1]
+        toCount += tuple[2]
     
-    return fieldInt
+    return (fieldInt, toCount)
 
 
 # position:見ている座標, dir:方角, mine:自分の石のint, enemy:相手の石のint
@@ -112,12 +114,13 @@ def find(fieldInt, mine, enemy):
     return settable
 
 
+#return -> isTurnable, fieldInt, count
 def turnOver(fieldInt, position, dir, mine, enemy):
 
     # 端まで行って空いてなかったらFalse
     for p in position:
         if p < 0 or p >= 8:
-            return (False, fieldInt)
+            return (False, fieldInt, 0)
 
     (px, py) = (position[0], position[1])
     (dx, dy) = (dir[0], dir[1])
@@ -129,25 +132,21 @@ def turnOver(fieldInt, position, dir, mine, enemy):
         # Trueが戻ってきたら裏返してTrue
         if tuple[0] == True:
             fieldInt[px, py] = mine
-            return (True, fieldInt)
+            count = tuple[2] + 1
+            return (True, fieldInt, count)
         else:
-            return (False, fieldInt)
+            return (False, fieldInt, 0)
 
     # 自分の石が見つかった場合はTrue
     elif fieldInt[px, py] == mine:
-        return (True, fieldInt)
+        return (True, fieldInt, 0)
     else:
-        return (False, fieldInt)
+        return (False, fieldInt, 0)
 
 
 # return -> hand
 def randomSet(settable):
     return random.choice(settable)
-
-
-# return -> hand
-#def maximumGain(fieldInt, settable, mine, enemy):
-
 
 
 def main():
@@ -181,8 +180,15 @@ def main():
             print(hand)
 
             if hand in settable:
-                fieldInt = setStone(fieldInt, hand, mine, enemy)
+                setTuple = setStone(fieldInt, hand, mine, enemy)
+                fieldInt = setTuple[0]
                 fieldStr = parseField(fieldInt)
+
+                cn = ""
+                if setTuple[1] >= 2: cn = 's'
+
+                print('Turned ' + str(setTuple[1]) + ' stone' + cn + '!')
+
                 playerTurn = not playerTurn
                 mine, enemy = enemy, mine
             else:
