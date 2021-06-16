@@ -116,7 +116,6 @@ def find(fieldInt, mine, enemy):
         for n in range(8):
             if fieldInt[m, n] == mine:
                 myStone.append([m, n])
-    print(myStone)
 
     for posx, posy in myStone:
         for dirx, diry in dirList:
@@ -173,7 +172,7 @@ def randomSet(settable):
 
 
 # return -> hand
-def maximumGain(fieldInt, settable, mine, enemy):
+def gainMaximumStones(fieldInt, settable, mine, enemy):
     maximum = 0
     toc = 0
     i = 0
@@ -188,9 +187,33 @@ def maximumGain(fieldInt, settable, mine, enemy):
             maximum = i
         i += 1
 
-    print(fieldInt)
-
     return settable[maximum]
+
+
+# return -> hand
+def giveMinHands(fieldInt, settable, mine, enemy):
+    minimum = 0
+    enemyHands = 64 # とりあえず盤面のマス数よりデカくしとく
+    i = 0
+
+    print('giveMinHands')
+
+    for preHand in settable:
+
+        preFieldInt = copy.deepcopy(fieldInt)
+
+        preSet = setStone(preFieldInt, preHand, mine, enemy)
+        preMine, preEnemy = enemy, mine
+        eh = find(preSet[0], preMine, preEnemy)
+        ehLen = len(eh)
+
+        if ehLen <= enemyHands:
+            ehLen = enemyHands
+            minimum = i
+        i += 1
+
+    print('set: ' + str(settable[minimum]))
+    return settable[minimum]
 
 
 def main():
@@ -204,7 +227,7 @@ def main():
     turn = 0
 
     autoPlay = True
-    enemyHandPattern = 1
+    enemyHandPattern = 2
 
     while turn < 60:
         print('Turn ' + str(turn + 1) + '!')
@@ -229,7 +252,9 @@ def main():
                 if enemyHandPattern == 0:
                     hand = randomSet(settable)
                 elif enemyHandPattern == 1:
-                    hand = maximumGain(fieldInt, settable, mine, enemy)
+                    hand = gainMaximumStones(fieldInt, settable, mine, enemy)
+                elif enemyHandPattern == 2:
+                    hand = giveMinHands(fieldInt, settable, mine, enemy)
 
             print(hand)
 
