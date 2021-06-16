@@ -140,6 +140,16 @@ def turnOver(fieldInt, position, dir, mine, enemy):
         return (False, fieldInt)
 
 
+# return -> hand
+def randomSet(settable):
+    return random.choice(settable)
+
+
+# return -> hand
+#def maximumGain(fieldInt, settable, mine, enemy):
+
+
+
 def main():
     fieldInt = setup()
     fieldStr = parseField(fieldInt)
@@ -163,11 +173,11 @@ def main():
                 handStr = input('Player ' + str(mine) +
                             ', Enter the position in format "x y": ')
                 hand = handStr.split()
+                hand = [int(n) for n in hand]
             else:
                 time.sleep(1)
-                hand = random.choice(settable)
+                hand = randomSet(settable)
 
-            hand = [int(n) for n in hand]
             print(hand)
 
             if hand in settable:
