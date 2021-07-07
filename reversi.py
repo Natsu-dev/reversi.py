@@ -38,18 +38,34 @@ def setup():
     return fieldInt
 
 
+def setDefaultWeight():
+    dw = np.ones((8, 8), dtype=np.int8)
+    # 角
+    dw[0, 0] = dw[0, 7] = dw[7, 0] = dw[7, 7] = 100
+    # 角の1つ内側
+    dw[1, 1] = dw[1, 6] = dw[6, 1] = dw[6, 6] = -10
+    # 角の両隣
+    dw[0, 1] = dw[0, 6] = dw[1, 0] = dw[1, 7] = -5
+    dw[6, 0] = dw[6, 7] = dw[7, 1] = dw[7, 6] = -5
+
+    # 縁
+    dw[0, 2:6] = dw[2:6, 0] = dw[2:6, 7] = dw[7, 2:6] = 3
+
+    return dw
+
+
 def judge(fieldInt):
 
     b, w = 0, 0
     winner = 0
-    
+
     for m in range(8):
         for n in fieldInt[m, ]:
             if n == 1:
                 b += 1
             elif n == 2:
                 w += 1
-    
+
     if b > w:
         winner = 1
     elif b < w:
@@ -57,12 +73,12 @@ def judge(fieldInt):
     else:
         winner = 0
 
-    return (winner, b, w) 
+    return (winner, b, w)
 
 
 # int fieldInt, list (int position)
 def setStone(fieldInt, position, mine, enemy):
-    
+
     (px, py) = (position[0], position[1])
     fieldInt[px, py] = mine
 
@@ -75,12 +91,12 @@ def setStone(fieldInt, position, mine, enemy):
         # 範囲外は見ない
         if px + dx < 0 or px + dx >= 8 or py + dy < 0 or py + dy >= 8:
             continue
-        
+
         turnPosition = [px + dx, py + dy]
         tuple = turnOver(fieldInt, turnPosition, dir, mine, enemy)
         fieldInt = tuple[1]
         toCount += tuple[2]
-    
+
     return (fieldInt, toCount)
 
 
@@ -136,7 +152,7 @@ def find(fieldInt, mine, enemy):
     return settable
 
 
-#return -> isTurnable, fieldInt, count
+# return -> isTurnable, fieldInt, count
 def turnOver(fieldInt, position, dir, mine, enemy):
 
     # 端まで行って空いてなかったらFalse
@@ -176,7 +192,7 @@ def gainMaxStones(fieldInt, settable, mine, enemy):
     maximum = 0
     toc = 0
     i = 0
-    
+
     for preHand in settable:
 
         fieldIntTemp = copy.deepcopy(fieldInt)
@@ -195,11 +211,10 @@ def gainMinStones(fieldInt, settable, mine, enemy):
     minimum = 0
     toc = 64
     i = 0
-    
+
     for preHand in settable:
 
         fieldIntTemp = copy.deepcopy(fieldInt)
-
         preSet = setStone(fieldIntTemp, preHand, mine, enemy)
         if preSet[1] <= toc:
             toc = preSet[1]
@@ -209,10 +224,36 @@ def gainMinStones(fieldInt, settable, mine, enemy):
     return settable[minimum]
 
 
+def useWeight(fieldInt, weight, settable, mine, enemy):
+
+    scoreList = []
+
+    for preHand in settable:
+
+        score = 0
+
+        fieldIntTemp = copy.deepcopy(fieldInt)
+        preFieldInt = setStone(fieldIntTemp, preHand, mine, enemy)[0]
+
+        for m in range(8):
+            for n in range(8):
+                if preFieldInt[m, n] == mine:
+                    score += weight[m, n]
+                elif preFieldInt[m, n] == enemy:
+                    score -= weight[m, n]
+
+        scoreList.append(score)
+    print("useWeight result:")
+    print(scoreList)
+    print("choose:")
+    print(settable[scoreList.index(max(scoreList))])
+    return settable[scoreList.index(max(scoreList))]
+
+
 # return -> hand
 def giveMinHands(fieldInt, settable, mine, enemy):
     minimum = 0
-    enemyHands = 64 # とりあえず盤面のマス数よりデカくしとく
+    enemyHands = 64  # とりあえず盤面のマス数よりデカくしとく
     i = 0
 
     print('giveMinHands')
@@ -239,6 +280,8 @@ def main():
     fieldInt = setup()
     fieldStr = parseField(fieldInt)
     print(fieldStr)
+    defaultWeight = setDefaultWeight()
+    print(defaultWeight)
     playerTurn = True
     skipped = False
     mine = 1
@@ -246,7 +289,7 @@ def main():
     turn = 0
 
     autoPlay = True
-    enemyHandPattern = 2
+    enemyHandPattern = 4
 
     while turn < 60:
         print('Turn ' + str(turn + 1) + '!')
@@ -256,14 +299,14 @@ def main():
         if settable:
 
             skipped = False
-            
+
             if playerTurn:
                 if autoPlay == True:
                     time.sleep(0.2)
                     hand = randomSet(settable)
                 else:
                     handStr = input('Player ' + str(mine) +
-                            ', Enter the position in format "x y": ')
+                                    ', Enter the position in format "x y": ')
                     hand = handStr.split()
                     hand = [int(n) for n in hand]
             else:
@@ -276,6 +319,9 @@ def main():
                     hand = giveMinHands(fieldInt, settable, mine, enemy)
                 elif enemyHandPattern == 3:
                     hand = gainMinStones(fieldInt, settable, mine, enemy)
+                elif enemyHandPattern == 4:
+                    hand = useWeight(fieldInt, defaultWeight,
+                                     settable, mine, enemy)
 
             print(hand)
 
@@ -285,7 +331,8 @@ def main():
                 fieldStr = parseField(fieldInt)
 
                 cn = ""
-                if setTuple[1] >= 2: cn = 's'
+                if setTuple[1] >= 2:
+                    cn = 's'
 
                 print('Turned ' + str(setTuple[1]) + ' stone' + cn + '!')
 
@@ -309,13 +356,14 @@ def main():
         print(fieldStr)
         turn += 1
 
-
     print('Game Set!')
     judgeTuple = judge(fieldInt)
     if judgeTuple[0] == 1:
-        print('Winner is black! ({} vs {})'.format(judgeTuple[1], judgeTuple[2]))
+        print('Winner is black! ({} vs {})'.format(
+            judgeTuple[1], judgeTuple[2]))
     elif judgeTuple[0] == 2:
-        print('Winner is white! ({} vs {})'.format(judgeTuple[1], judgeTuple[2]))
+        print('Winner is white! ({} vs {})'.format(
+            judgeTuple[1], judgeTuple[2]))
     else:
         print('Draw! ({} vs {})'.format(judgeTuple[1], judgeTuple[2]))
 
